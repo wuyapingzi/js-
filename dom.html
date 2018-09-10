@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script>
+      window.onload = function(){
+        var oUl = document.getElementById('ul1');
+        var str = '';
+        console.time('hello');
+        for(var i=0; i<5000; i++){
+          var oLi = document.creatElement('li');//用creatElement操作dom
+          oUl.appendChild(oLi);
+        }
+        console.timeEnd('hello');
+        
+        console.time('hello');
+        for(var i=0; i<5000;i++){
+          str += '<li></li>'
+        }
+        oUl.innerHtml = str; //用innerHtml操作dom
+        console.timeEnd('hello');
+      }
+    </script>
+  </head>
+  <body>
+    <div id="example"></div>
+    <script type="text/babel">
+      ReactDOM.render(
+        <h1>Hello, world!</h1>,
+        document.getElementById('example')
+      );
+    </script>
+  </body>
+</html>
