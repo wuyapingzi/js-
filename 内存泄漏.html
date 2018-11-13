@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+      JavaScript中最常用的垃圾收集方式是标记清除(mark-and-sweep)。当变量进入环境（例如，在函数中声明一个变量）时，就将这个变量标记为“进入环境”。从逻辑上讲，永远不能释放进入环境的变量所占的内存，因为只要执行流进入相应的环境，就可能用到它们。而当变量离开环境时，这将其 标记为“离开环境”。
+
+      常见内存泄漏的几种情况：
+        1、全局变量引起的内存泄漏
+        2、闭包引起的内存泄漏
+        3、dom清空或者删除时，该dom绑定的事件为清除导致的内存泄漏
+        4、子元素存在引起的内存泄漏
+        5、被遗忘的定时器或者回调 setInterva()
+    */
+    //泄漏示例
+    function leak(arg) {
+        this.arg = arg;
+    }
+
+    function test() {
+        var l1= new leak('It is a leak');
+
+        document.body.addEventListener('click', function() {
+            l1.arg = 'Here you are!'
+        })
+    }
+
+    test();
+
+    //泄漏修改
+    function leak(arg) {
+        this.arg = arg;
+    }
+
+    function test() {
+        var l1= new leak('It is a leak');
+
+        function l() {
+            console.info('Here you are!')
+            l1.arg = 'Here you are!'
+            document.body.removeEventListener('click', l);
+        }
+
+        document.body.addEventListener('click', l)
+    }
+
+    test();
+  </script>
+</body>
+</html>
