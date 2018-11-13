@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+      1、什么是闭包？
+        闭包是一个拥有许多的变量和绑定了这些变量的环境表达式（通常是一个函数），因而，这些变量也是该表达式的一部分。
+      2、闭包的特点？
+        作为一个函数变量的引用，当函数返回时，其处于激活状态。
+        一个闭包就是当一个函数返回时，一个没有释放资源的栈区。
+        js允许使用内部函数----即：函数定义和函数表达式在另一个函数的函数体内。而且，这些被捕韩束可以访问他们所在的外部函数声明中的所有的局部变量、参数、和声明的其他的内部函数。当其中一个这样的内部函数在包含它们外部的函数之外被调用时，就会形成闭包。
+    */
+    //闭包的写法：
+    // 第一种
+    function Circle(r){
+      this.r = r;
+    }
+    Circle.PI = 3.14159;
+    Circle.prototype.area = function(){
+      return Circle.PI * this.r * this.r;
+    }
+    var c = new Circle(2);
+    var circleArea = c.area();// 内部函数area在包含它的外部函数之外被调用，形成闭包。
+    console.log('调用面积函数结果==', circleArea); // 12.56636
+    //第二种
+    var Circle = function(){
+      var obj = new Object();
+      obj.PI = 3.14;
+      obj.r = 1;
+      obj.area = function(){
+        return this.PI * this.r * this.r;
+      }
+      return obj;
+    }();
+    console.log(Circle.area());
+    //第三种
+    var Circle = function(){
+      var obj = new Object();
+      obj.PI = 3.14;
+      obj.area = function(r){
+        return this.PI * r * r;
+      }
+      return obj;
+    };
+    var c = new Circle();
+    var cirArea = c.area(1);
+    console.log('调用面积函数求结果==', cirArea); // 3.14
+
+    //第四种
+    var Circle = new Object();
+    Circle.PI = 3.14;
+    Circle.area = function(r){
+      return this.PI * r * r;
+    }
+    var cirArea = Circle.area(2);
+    console.log('调用面积函数结果==', cirArea); // 12.56
+
+    //第五种
+    var Circle = {
+      PI: 3.14,
+      area: function(r){
+        return this.PI * r * r;
+      }
+    }
+    var cirArea = Circle.area(2);
+    console.log('调用面积函数求结果==', cirArea);  //12.56
+
+    //js闭包的用途
+    /*
+      匿名自执行函数:
+        我们知道所有的变量，如果不加上var关键字，则会默认添加到全局对象的属性上去，这样的临时变量加入全局变量有很多坏处：
+          别的函数误用这个变量；
+          造成全局变量过于庞大，影响访问速度（因为变量的取值是需要从原型链上遍历的）；
+        除了每次使用变量都用var关键字之外，我们实际情况下经常遇到的一种情况，即函数只需要执行一次，其内部变量无需维护，必须UI初始化，那么我们就可以使用闭包。
+    */
+
+    //我么创建了匿名函数并立即执行它，由于外部无法引用内部的变量，因此函数在执行完后会立即释放资源，关键是不污染全局对象。
+    (function(dm){
+      for(var i = 0; i < dm.table.length; i++){
+        var row = dm.table[i];
+        for(var j=0; j<row.length; j++){
+          console.log('二维数组元素值==',dm.table[i][j]);
+        }
+      }
+    }({
+      table: [[1,2,4,6],[2,4,7,8],[8,9,10,11],[9,12,13,15]],
+      tree: {},
+    }));
+    
+    /*
+      结果缓存
+        当我们有一个处理过程很耗时的函数对象，每次调用都会花费很长时间，那么我们就需要将计算的结果缓存起来，当调用这个函数的时候，首先在缓存中查找，如果找不到，再进行计算，然后更新缓存并返回值。如果找到了，直接返回查到的结果即可。闭包可以做到这一点，因为它不会释放外部的引用，从而函数内部的值可以保留。
+    */
+    var cacheSearchBox = (function(){
+      var cache = {};
+      var count = [];
+      return{
+        attachSearchBox: function(id){
+          if(id in cache){ //如果结果在缓存中
+            console.log('缓存中有数据');
+            return cache[id]; //则直接返回缓存中的对象
+          }
+          var fsb =  new function(id){return {value: 123}}//假设这是一个耗时的异步请求获取数据
+          cache[id] = fsb; //更新缓存
+          count.push(id); //更新存放进入缓存的id的数组
+          console.log('新创建数据', cache, count);
+          if(count.length > 100){ //保证缓存大小<=100
+            delete cache[count.shift()];
+          }
+          return fsb;
+        },
+        clearSearchBox: function(id){
+          //操作
+        }
+      }
+    })();
+    var searchVal = cacheSearchBox.attachSearchBox('input'); //新创建数据 {input: {…}}input: {value: 123}
+    console.log('搜索的结果==', searchVal); //{value: 123}
+
+    //第二次执行
+    var searchVal = cacheSearchBox.attachSearchBox('input'); //缓存中有数据
+    console.log('搜索的结果==', searchVal); //{value: 123}
+
+    /*
+      封装
+    */
+    var Person = function(){
+      var name = 'default';
+      return {
+        getName: function(){
+          return name;
+        },
+        setName: function(newName){
+          name = newName;
+        }
+      }
+    }();
+    console.log(Person.name); //undefined 外部不能访问
+    console.log(Person.getName()); // default
+    Person.setName('wuyapingzi');
+    console.log(Person.getName()); // wuyapingzi
+
+    /*
+      实现类和继承
+    */
+    function People(){
+      var name = 'default';
+      return {
+        getName: function(){
+          return name;
+        },
+        setName: function(newName){
+          name = newName;
+        }
+      }
+    };
+    var p = new People();
+    p.setName('wuyapingzi');
+    console.log('p.name==', p.getName()); //p.name== wuyapingzi
+
+    var Jack = function(){};
+    Jack.prototype = new People();
+    Jack.prototype.say = function(){
+      console.log('hello, my name is ', this.getName());
+    }
+    var jack1 = new Jack();
+    jack1.setName('jack1');
+    console.log('jack1.name==', jack1.getName()); //jack1.name== jack1
+    
+    jack1.say(); //hello, my name is  jack1
+    
+  </script>
+</body>
+</html>
